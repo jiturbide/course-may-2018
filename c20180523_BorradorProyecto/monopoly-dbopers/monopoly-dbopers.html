@@ -1,0 +1,91 @@
+<link rel="import" href="../polymer/polymer-element.html">
+
+<dom-module id="monopoly-dbopers">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]!</h2>
+  </template>
+
+  <script>
+    class MonopolyDbopers extends Polymer.Element {
+      constructor() {
+        super();
+        console.log("properties: " + this.queryProperties());
+        console.log("transactions: " + this.queryTransactions());
+      }
+      static get is() { return 'monopoly-dbopers'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'monopoly-dbopers'
+          }
+        };
+      }
+      queryProperties() {
+        //Retorna un objeto player con alias especificado con todos sus datos incluyendo sus propiedades
+        let properties = [
+            {property : {
+              id : 'PABCDEF0012',
+              description :   'Avion presiden',
+              price : 75000000,
+              owner : 'cslim' }},
+            {property : {
+             id : 'PABCDEF0050',
+             description : 'Casino Royal',
+             price : 2000,
+             owner : 'bank' }}
+          ];
+
+        return properties;
+      }
+
+      queryPlayers() {
+        //Devuelve un arreglo de todos los players ordenada por id sin importar el estatus
+        let players = [
+           {player : { id : 'PABCDEF002',
+            alias : 'margarito',
+            amount : 10000,
+            status : 'playing'
+          }},
+            {player : { id : 'PABCDEF003',
+            alias : 'cslim',
+            amount : 10000,
+            status : 'playing'}
+          }];
+        return players;
+      }
+
+      queryTransactions() {
+        //Devuelve un arreglo de todas las transacciones del juego ordenadas por id
+        let transactions = [
+          {transaction: { id : 'TXABCDEF00999',
+            from : 'banco',
+            to : 'cslim',
+            amount : 75000000,
+            date : '18-05-10_12:20',
+            property : 'mexico' }},
+          {transaction: { id : 'TXABCDEF001000',
+            from : 'cslim',
+            to : 'margarito',
+            amount : 0,
+            date : '18-05-21_12:20',
+            property : 'etiopia' }},
+          {transaction: { id : 1001,
+             from : 'margarito',
+             to : 'cslim',
+             amount : 200,
+             date : '18-05-21_12:30',
+             property : null }}
+        ];
+        return transactions;
+      }
+    }
+
+    window.customElements.define(MonopolyDbopers.is, MonopolyDbopers);
+  </script>
+</dom-module>
