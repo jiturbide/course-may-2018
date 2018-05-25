@@ -11,7 +11,7 @@
 <link rel="import" href="/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="my-monopoly-dashboard.html">
+<link rel="import" href="/bower_components/my-monopoly-dashboard/src/my-monopoly-dashboard.html">
 <link rel="import" href="detail-table.html">
 <link rel="import" href="monopoly-dbopers.html">
 <link rel="import" href="monopoly-trans-cash.html">
@@ -67,18 +67,17 @@
         </app-header>
         <!-- <contact-panel active-contact="[[activeContact]]" on-info-updated="_updateContact"></contact-panel> -->
         <h4>Lista de jugadores</h4>
-        <my-monopoly-dashboard properties=[]></my-monopoly-dashboard>
+        <my-monopoly-dashboard players={{playerslist}}></my-monopoly-dashboard>
 
         <h4>Lista de Transacciones</h4>
-        <detail-table transactions='[{  "id": "1001","from" : "margarito","to" : "cslim","amount" : 1,"date" : "18-05-21_12:35","property" : ""}]'></detail-table>
+        <detail-table transactions=[[transactionlist]]></detail-table>
+
+        <!-- '[{  "id": "1001","from" : "margarito","to" : "cslim","amount" : 1,"date" : "18-05-21_12:35","property" : ""}]' -->
 
       </app-header-layout>
 
       <app-drawer align="end" slot="drawer" >
         <app-toolbar>Operaciones</app-toolbar>
-        <!-- <div class="scroll-contacts">
-            Lista de jugadores
-        </div> -->
         <paper-button raised on-click="_openDialogPlayer">Registrar Jugador</paper-button>
         <paper-button raised on-click="_openDialogSelectPlayer">Elegir Jugador</paper-button>
         <paper-button raised on-click="_openDialogMoney">Transferir Dinero</paper-button>
@@ -108,11 +107,12 @@
       <h2>Transaccion Dinero</h2>
 
       <monopoly-trans-cash id="transaction"
-      to="[[to]]"
-      from ="[[from]]"
-      is-visible="[[isVisible]]"
-      ></monopoly-trans-cash>
+      to="{{playerslist}}"
+      from = "{{currentplayer}}"
+      is-visible="true" on-cash-transaction="_eventRegisterMoneyTrans"></monopoly-trans-cash>
     </paper-dialog>
+
+
 
     <paper-dialog id="dialogProperty" with-backdrop>
       <h2>Transaccion Propiedad</h2>
@@ -140,14 +140,6 @@
     //  REGRESA(*): { owner:"LJ5cjAK8vRPIP2zCwHLo",
     //                  property:"EeyWYPa6KAgc7cyLhn7Y" } -->
 
-
-    <!-- <my-monopoly-dashboard players=[[playerslist]]
-         propertieslist=[[propertieslist]]>
-      <my-monopoly-dashboard>
-
-    <detail-table transactions=[[transactionslist]]>
-      <my-monopoly-dashboard> -->
-
    <monopoly-dbopers id="mdb"></monopoly-dbopers>
 
 
@@ -165,8 +157,9 @@
             playerslist : Array,
             propertieslist : Array,
             transactionslist : Array,
-            gamestatus : { type : String, value : 'NotStarted', reflectToAttribute : true},
-            currentplayer : String,
+            gamestarted : { type : Boolean, value : false, reflectToAttribute : true},
+            currentplayer : Object,
+            newtran : Object,
           };
         }
 
@@ -177,7 +170,7 @@
             this.set('playerslist', this.$.mdb.queryPlayers());
             this.set('transactionslist', this.$.mdb.queryTransactions());
             this.set('gamestatus', 'NotStarted');
-
+            this.set('currentplayer', { id : 'PABCDEF002', alias : 'margarito', amount : 10000, status : 'playing' } );
             console.log("properties: " + JSON.stringify("Props: " + this.propertieslist));
             console.log("transactions: " + JSON.stringify("Trans:" + this.transactionslist));
             console.log("players: " + JSON.stringify("Players:" + this.playerslist));
@@ -202,15 +195,7 @@
         //   this.playerslist = this.$.mdb.queryPlayers();
         // }
         //
-        // _eventRegisterPlayer(event) {
-        //   //TODO
-        //   //recupera el player del evento
-        //   let alias = event.detail.playerAlias;
-        //   //crear un player con monto inicial, estatus 'new'
-        //   //guarda el player con nuevo estatus
-        //   //recupera la lista actualizada de players
-        //   this.playerslist = this.$.mdb.queryPlayers();
-        // }
+
         //
         // _eventLostPlayer(event) {
         //   //TODO
@@ -240,21 +225,32 @@
         //    this.gamestatus = 'NotStarted';
         //  }
         //
-        // _eventRegisterTransaction(event) {
-        //   //TODO
-        //     // Internamente esta función detectará si es de cambio de propiedad o de dinero
-        //     // Si es una compra transferirá la propiedad de un player a otro
-        //     // Se valida que el playerFrom esté en status ‘playing’
-        //     let p = event.detail.property;
-        //     let player = event.detail.owner;
-        //
-        //     // Actualiza la cantidad de dinero de un player a otro
-        //     //moveProperty(Property, playerFrom, playerTo)
-        //
-        //     //Actualiza la cantidad de dinero de un player a otro
-        //     updatePlayerAmount(incrementAmout, playerFrom, playerTo)
-        //     this.transactionslist = mdb.queryTransactions();
-        // }
+        _eventRegisterMoneyTrans(event) {
+          //TODO
+            // Internamente esta función detectará si es de cambio de propiedad o de dinero
+            // Si es una compra transferirá la propiedad de un player a otro
+            // Se valida que el playerFrom esté en status ‘playing’
+            //let p = event.detail.property;
+            //let player = event.detail.owner;
+
+            newtran.id = 'TNewTran' + Math.floor((Math.random() * 1000000) + 1);
+            newtran.from = event.detail.from;
+            newtran.to = event.detail.to;
+            newtran.amount = event.detail.amount;
+            newtran.date = '18-05-10_12:20'
+            newtran.property = '';
+            console.log("newtran: " + newtran);
+            this.transactionslist = [newtran];
+//this.contactList[this.contactList.length - 1]
+
+            // Actualiza la cantidad de dinero de un player a otro
+            //moveProperty(Property, playerFrom, playerTo)
+
+            //Actualiza la cantidad de dinero de un player a otro
+            //updatePlayerAmount(incrementAmout, playerFrom, playerTo)
+            //this.transactionslist = mdb.queryTransactions();
+            this.$.dialogMoney.close();
+        }
         //
         // //Retorna un objeto player con alias especificado con todos sus datos incluyendo sus propiedades
         // _eventQueryPlayer(event) {
@@ -305,8 +301,17 @@
           console.log("_createTranMoney()");
           this.$.dialogMoney.close();
         }
-        _registerPlayer() {
-          console.log("_registerPlayer()");
+
+        _eventRegisterPlayer(event) {
+          console.log("_eventRegisterPlayer()");
+          //TODO
+          //recupera el player del evento
+          //let alias = event.detail.playerAlias;
+          //crear un player con monto inicial, estatus 'new'
+          //guarda el player con nuevo estatus
+          //recupera la lista actualizada de players
+          //this.playerslist = this.$.mdb.queryPlayers();
+
           this.$.dialogPlayer.close();
         }
 
