@@ -1,0 +1,201 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+
+<dom-module id="detail-table">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+      :root {
+        --header-blue: #006EC1;
+        --oddRow-blue: #B5E5F9;
+        --academy-white: #fff;
+      }
+
+      .container{
+        max-height: 250px;
+        width: 100%;
+      }
+
+      .table-transactions {
+        font-family: verdana, arial, sans-serif;
+        font-size: 11px;
+        border-width: 1px;
+        border-collapse: collapse;
+        text-align: center;
+        text-transform: capitalize;
+      }
+
+      th {
+        background-color: var(--header-blue);
+        border-width: 1px;
+        border-style: solid;
+        color: var(--academy-white);
+        padding: 8px;
+      }
+
+      tr:nth-child(even) td{
+        background-color: var(--academy-white);
+      }
+
+      td {
+        background-color: var(--oddRow-blue);;
+        border-color: var(--academy-white);
+        border-style: solid;
+        border-width: 1px;
+        padding: 8px;
+      }
+
+      @media screen and (max-width: 650px) {
+        .container {
+          overflow-x:auto;
+        }
+      }
+
+      @media screen and (min-height: 250px) {
+        .container {
+          overflow-y:auto;
+        }
+      }
+
+
+    </style>
+    <div class="container">
+      <table class="table-transactions">
+      <thead>
+        <tr>
+          <th>Transaction Number</th>
+          <th>From User</th>
+          <th>To User</th>
+          <th>Amount</th>
+          <th>Property</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <template is="dom-repeat" items="[[transactions]]" >
+          <tr>
+            <td>[[item.id]]</td>
+            <td>[[item.from]]</td>
+            <td>[[item.to]]</td>
+            <td>[[format_currency(item.amount)]]</td>
+            <td>[[item.property]]</td>
+            <td>[[item.date]]</td>
+          </tr>
+        </template>
+      </tbody>
+    </table>
+    </div>
+  </template>
+
+  <script>
+    /**
+     * `detail-table`
+     *
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class DetailTable extends Polymer.Element {
+      static get is() {
+        return 'detail-table';
+      }
+
+      static get properties() {
+            return {
+                transactions: {
+                    type: Array,
+                    value: [
+                      {
+                        "id": "TXABCDEF00999",
+                        "from" : "banco",
+                        "to" : "cslim",
+                        "amount" : 75000000,
+                        "date" : "18-05-10_12:20",
+                        "property" : "mexico"
+                      },
+                      {
+                        "id": "TXABCDEF001000",
+                        "from" : "cslim",
+                        "to" : "margarito",
+                        "amount" : 0,
+                        "date" : "18-05-21_12:20",
+                        "property" : "etiopia"
+                      },
+                      {
+                        "id": "1001",
+                        "from" : "margarito",
+                        "to" : "cslim",
+                        "amount" : 200.12,
+                        "date" : "18-05-21_12:30",
+                        "property" : ""
+                      },
+                      {
+                        "id": "1231231231231231",
+                        "from" : "Equipo2",
+                        "to" : "rey",
+                        "amount" : 'sdasd',
+                        "date" : "20-06-12_12:20",
+                        "property" : "georgia"
+                      },
+                      {
+                        "id": "adfdfsdfsdfsdfsfsdf",
+                        "from" : "banco",
+                        "to" : "cslim",
+                        "amount" : 75000000,
+                        "date" : "18-05-10_12:20",
+                        "property" : "canada"
+                      },
+                      {
+                        "id": "e2323wer2rwer23rrer",
+                        "from" : "cslim",
+                        "to" : "margarito",
+                        "amount" : 0.2,
+                        "date" : "18-05-21_12:20",
+                        "property" : "uk"
+                      },
+                      {
+                        "id": "1001",
+                        "from" : "margarito",
+                        "to" : "cslim",
+                        "amount" : 1,
+                        "date" : "18-05-21_12:35",
+                        "property" : ""
+                      },
+                      {
+                        "id": "TXABCDEF00189282",
+                        "from" : "tres",
+                        "to" : "javier",
+                        "amount" : 'sdasd',
+                        "date" : "20-06-12_12:43",
+                        "property" : "ujkbenis"
+                      }
+                  ],
+                    notify: true
+                }
+            };
+        }
+
+        format_currency(amount){
+          if(isNaN(amount) || amount===0){
+            return '-'
+          }
+
+          amount = amount.toString();
+          const pattern = /(-?\d+)(\d{3})/;
+          while (pattern.test(amount)){
+            amount = amount.replace(pattern, "$1,$2");
+          }
+          return '$' + amount;
+        }
+
+      connectedCallback() {
+        super.connectedCallback();
+      }
+    }
+
+    window.customElements.define(DetailTable.is, DetailTable);
+  </script>
+</dom-module>

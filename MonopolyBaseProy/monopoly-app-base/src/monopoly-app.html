@@ -1,0 +1,326 @@
+<link rel="import" href="/bower_components/polymer/polymer-element.html">
+<link rel="import" href="/bower_components/polymer/lib/elements/dom-repeat.html">
+<link rel="import" href="/bower_components/app-layout/app-layout.html">
+<link rel="import" href="/bower_components/app-layout/app-scroll-effects/effects/waterfall.html">
+
+<link rel="import" href="/bower_components/paper-dialog/paper-dialog.html">
+<link rel="import" href="/bower_components/paper-dialog-behavior/paper-dialog-behavior.html">
+<link rel="import" href="/bower_components/iron-resizable-behavior/iron-resizable-behavior.html">
+<link rel="import" href="/bower_components/neon-animation/neon-animation.html">
+
+<link rel="import" href="/bower_components/paper-button/paper-button.html">
+<link rel="import" href="/bower_components/paper-input/paper-input.html">
+<link rel="import" href="/bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="my-monopoly-dashboard.html">
+<link rel="import" href="detail-table.html">
+<link rel="import" href="monopoly-dbopers.html">
+<link rel="import" href="monopoly-trans-cash.html">
+
+<dom-module id="monopoly-app">
+  <template>
+    <style>
+    app-header {
+      background-color: #4785d1;
+      color: #fff;
+    }
+    app-drawer {
+      --app-drawer-content-container: {
+         background-color: #fafafa;
+       }
+    }
+    paper-icon-button {
+      --paper-icon-button-ink-color: white;
+    }
+    .title {
+      font-size: 30px;
+      font-weight: bold;
+    }
+    app-drawer-layout:not([narrow]) [drawer-toggle] {
+      display: none;
+    }
+    app-toolbar {
+      text-align: center;
+    }
+    paper-button {
+      background-color: #4785d1;
+      color: white;
+      height: 45px;
+      margin: 30px 20px 0 10px;;
+      width: 90%;
+    }
+    paper-dialog {
+      padding: 25px 90px;
+    }
+    .scroll-contacts {
+      height: 100%;
+      overflow: auto;
+    }
+    </style>
+
+    <app-drawer-layout>
+      <app-header-layout>
+        <app-header slot="header" reveals effects="waterfall">
+          <app-toolbar>
+            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
+            <div class="title" main-title>Monopoly</div>
+          </app-toolbar>
+        </app-header>
+        <!-- <contact-panel active-contact="[[activeContact]]" on-info-updated="_updateContact"></contact-panel> -->
+        <h4>Lista de jugadores</h4>
+        <my-monopoly-dashboard properties=[]></my-monopoly-dashboard>
+
+        <h4>Lista de Transacciones</h4>
+        <detail-table transactions='[{  "id": "1001","from" : "margarito","to" : "cslim","amount" : 1,"date" : "18-05-21_12:35","property" : ""}]'></detail-table>
+
+      </app-header-layout>
+
+      <app-drawer align="end" slot="drawer" >
+        <app-toolbar>Operaciones</app-toolbar>
+        <!-- <div class="scroll-contacts">
+            Lista de jugadores
+        </div> -->
+        <paper-button raised on-click="_openDialogPlayer">Registrar Jugador</paper-button>
+        <paper-button raised on-click="_openDialogSelectPlayer">Elegir Jugador</paper-button>
+        <paper-button raised on-click="_openDialogMoney">Transferir Dinero</paper-button>
+        <paper-button raised on-click="_openDialogProperty">Transferir Propiedad</paper-button>
+        <paper-button raised on-click="_openDialogResetGame">Reinicia Juego</paper-button>
+      </app-drawer>
+    </app-drawer-layout>
+
+
+    <paper-dialog id="dialogPlayer" with-backdrop>
+      <h2>Registrar jugador</h2>
+      <paper-input id="playername" label="Nombre">
+        <iron-icon icon="social:mood" slot="prefix"></iron-icon>
+      </paper-input>
+      <paper-button raised on-click="_registerPlayer">Guardar</paper-button>
+    </paper-dialog>
+
+    <paper-dialog id="dialogSelectPlayer" with-backdrop>
+      <h2>Elegir jugador</h2>
+      <paper-input id="playername" label="Nombre">
+        <iron-icon icon="social:mood" slot="prefix"></iron-icon>
+      </paper-input>
+      <paper-button raised on-click="_selectPlayer">Elegir</paper-button>
+    </paper-dialog>
+
+    <paper-dialog id="dialogMoney" with-backdrop>
+      <h2>Transaccion Dinero</h2>
+
+      <monopoly-trans-cash id="transaction"
+      to="[[to]]"
+      from ="[[from]]"
+      is-visible="[[isVisible]]"
+      ></monopoly-trans-cash>
+    </paper-dialog>
+
+    <paper-dialog id="dialogProperty" with-backdrop>
+      <h2>Transaccion Propiedad</h2>
+      <paper-input id="name" label="Nombre">
+        <iron-icon icon="social:mood" slot="prefix"></iron-icon>
+      </paper-input>
+      <paper-input id="phone" label="Telefono">
+        <iron-icon icon="hardware:phone-android" slot="prefix"></iron-icon>
+      </paper-input>
+      <paper-button raised on-click="_createTranProperty">Guardar</paper-button>
+    </paper-dialog>
+
+    <paper-dialog id="dialogResetGame" with-backdrop>
+      <h2>Reiniciar Juego</h2>
+      <paper-button raised on-click="_resetGame">Reiniciar</paper-button>
+    </paper-dialog>
+
+    <!-- //[{"id":"LJ5cjAK8vRPIP2zCwHLo","name":"Israel","price":10000,"owner":"LJ5cjAK8vRPIP2zCwHLo"},{"id":"EeyWYPa6KAgc7cyLhn7Y","name":"Portugal","price":15000,"owner":"gzxdoKNTIxGFxASHA8Fo"},{"id":"XiFffSwBGTN3bZa0gGYO","name":"Argentina","price":12000,"owner":"gzxdoKNTIxGFxASHA8Fo"} ] -->
+    <!-- <monopoly-trans-country properties='{{propertieslist}}'
+       new-owner= '???????'
+       on-transfer-owner-happend="_eventRegisterTransaction">
+    </monopoly-trans-country> -->
+
+    <!-- //  EVENTO: transfer-owner-happend
+    //  REGRESA(*): { owner:"LJ5cjAK8vRPIP2zCwHLo",
+    //                  property:"EeyWYPa6KAgc7cyLhn7Y" } -->
+
+
+    <!-- <my-monopoly-dashboard players=[[playerslist]]
+         propertieslist=[[propertieslist]]>
+      <my-monopoly-dashboard>
+
+    <detail-table transactions=[[transactionslist]]>
+      <my-monopoly-dashboard> -->
+
+   <monopoly-dbopers id="mdb"></monopoly-dbopers>
+
+
+  </template>
+
+  <script>
+    (function MonopolyApp(customElements) {
+      'use strict';
+      class MonopolyApp extends Polymer.Element {
+        static get is() {
+          return 'monopoly-app';
+        }
+        static get properties() {
+          return {
+            playerslist : Array,
+            propertieslist : Array,
+            transactionslist : Array,
+            gamestatus : { type : String, value : 'NotStarted', reflectToAttribute : true},
+            currentplayer : String,
+          };
+        }
+
+        connectedCallback() {
+            super.connectedCallback();
+            //Inicializa consultas de properties, players, properties
+            this.set('propertieslist', this.$.mdb.queryProperties());
+            this.set('playerslist', this.$.mdb.queryPlayers());
+            this.set('transactionslist', this.$.mdb.queryTransactions());
+            this.set('gamestatus', 'NotStarted');
+
+            console.log("properties: " + JSON.stringify("Props: " + this.propertieslist));
+            console.log("transactions: " + JSON.stringify("Trans:" + this.transactionslist));
+            console.log("players: " + JSON.stringify("Players:" + this.playerslist));
+        }
+
+        // _eventLoginPlayer(event) {
+        //   //TODO
+        //   //recupera el player del evento
+        //   let alias = event.detail.playerAlias;
+        //
+        //   //Cambia estatus a ‘playing’ devuelve el objeto player
+        // }
+        //
+        // //Cambia estatus a ‘ready’ devuelve el objeto player
+        // _eventReadyPlayer(event) {
+        //   //TODO
+        //   //recupera el player del evento
+        //   let alias = event.detail.playerAlias;
+        //   //actualiza su estatus a 'ready'
+        //   //guarda el player con nuevo estatus
+        //   //recupera la lista actualizada de players
+        //   this.playerslist = this.$.mdb.queryPlayers();
+        // }
+        //
+        // _eventRegisterPlayer(event) {
+        //   //TODO
+        //   //recupera el player del evento
+        //   let alias = event.detail.playerAlias;
+        //   //crear un player con monto inicial, estatus 'new'
+        //   //guarda el player con nuevo estatus
+        //   //recupera la lista actualizada de players
+        //   this.playerslist = this.$.mdb.queryPlayers();
+        // }
+        //
+        // _eventLostPlayer(event) {
+        //   //TODO
+        //   //recupera el player del evento
+        //   let alias = event.detail.playerAlias;
+        //
+        //   //actualiza su estatus del player a 'lost'
+        //   //guarda el player con nuevo estatus
+        //   //recupera la lista actualizada de players
+        //
+        //   //Cambia el estatus en el arreglo local y en la BD
+        //   this.playerslist = this.$.mdb.queryPlayers();
+        // }
+        //
+        // _eventResetGame(event) {
+        //   //Reinicia los valores al estado inicial
+        //
+        //   //Cambia el estatus del juego
+        //   this.gamestatus = 'NotStarted';
+        // }
+        //
+        //  _eventStartGame(event) {
+        //    //Valida que haya al menos 1 player registrado y que todos esten en estatus ‘ready’
+        //    //El banco llena las propiedades desde el archivo config-game.json
+        //    //El banco toma una cantidad inicial desde el archivo config-game.json
+        //    //Cambia estatus del juego a 'Started'
+        //    this.gamestatus = 'NotStarted';
+        //  }
+        //
+        // _eventRegisterTransaction(event) {
+        //   //TODO
+        //     // Internamente esta función detectará si es de cambio de propiedad o de dinero
+        //     // Si es una compra transferirá la propiedad de un player a otro
+        //     // Se valida que el playerFrom esté en status ‘playing’
+        //     let p = event.detail.property;
+        //     let player = event.detail.owner;
+        //
+        //     // Actualiza la cantidad de dinero de un player a otro
+        //     //moveProperty(Property, playerFrom, playerTo)
+        //
+        //     //Actualiza la cantidad de dinero de un player a otro
+        //     updatePlayerAmount(incrementAmout, playerFrom, playerTo)
+        //     this.transactionslist = mdb.queryTransactions();
+        // }
+        //
+        // //Retorna un objeto player con alias especificado con todos sus datos incluyendo sus propiedades
+        // _eventQueryPlayer(event) {
+        //   //TODO
+        //   let alias = event.detail.playerAlias;
+        //   this.playerslist = this.$.mdb.queryPlayers(alias);
+        // }
+        //
+        // //Devuelve un arreglo de todos los players ordenada por id sin importar el estatus
+        // _eventQueryAllPlayers(event) {
+        //   this.playerslist = this.$.mdb.queryPlayers();
+        // }
+        // //Devuelve un arreglo de todas las transacciones del juego ordenadas por id
+        // _eventQueryAllTransactions(event) {
+        //   this.transactionslist = this.$.mdb.queryTransactions();
+        // }
+        //
+        // //Devuelve un arreglo de transacciones del alias especificado ordenadas por id
+        // _eventQueryTransactions(event) {
+        //   // TODO
+        //   let alias = event.detail.playerAlias;
+        //
+        //   this.transactionslist = mdb.queryTransactions(alias);
+
+
+
+        _openDialogPlayer() {
+          this.$.dialogPlayer.open();
+        }
+        _openDialogMoney() {
+          this.$.dialogMoney.open();
+        }
+        _openDialogProperty() {
+          this.$.dialogProperty.open();
+        }
+        _openDialogSelectPlayer() {
+          this.$.dialogSelectPlayer.open();
+        }
+        _openDialogResetGame() {
+          this.$.dialogResetGame.open();
+        }
+
+        _createTranProperty() {
+          console.log("_createTranProperty()");
+          this.$.dialogProperty.close();
+        }
+        _createTranMoney() {
+          console.log("_createTranMoney()");
+          this.$.dialogMoney.close();
+        }
+        _registerPlayer() {
+          console.log("_registerPlayer()");
+          this.$.dialogPlayer.close();
+        }
+
+        _selectPlayer() {
+          this.$.dialogSelectPlayer.close();
+        }
+
+        _resetGame() {
+            this.$.dialogResetGame.close();
+        }
+
+
+      } //fin clase
+      customElements.define(MonopolyApp.is, MonopolyApp);
+    })(window.customElements);
+  </script>
+</dom-module>
