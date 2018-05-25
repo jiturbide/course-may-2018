@@ -1,0 +1,320 @@
+<!--
+@license
+Copyright (c) 2016 The Polymer Project Authors. All rights reserved.
+This code may only be used under the BSD style license found at http://polymer.github.io/LICENSE.txt
+The complete set of authors may be found at http://polymer.github.io/AUTHORS.txt
+The complete set of contributors may be found at http://polymer.github.io/CONTRIBUTORS.txt
+Code distributed by Google as part of the polymer project is also
+subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer/app-drawer.html">
+<link rel="import" href="../bower_components/app-layout/app-drawer-layout/app-drawer-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-header/app-header.html">
+<link rel="import" href="../bower_components/app-layout/app-header-layout/app-header-layout.html">
+<link rel="import" href="../bower_components/app-layout/app-scroll-effects/app-scroll-effects.html">
+<link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
+<link rel="import" href="../bower_components/app-route/app-location.html">
+<link rel="import" href="../bower_components/app-route/app-route.html">
+<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
+<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="my-icons.html">
+
+<link rel="lazy-import" href="my-view1.html">
+<link rel="lazy-import" href="my-view2.html">
+<link rel="lazy-import" href="my-view3.html">
+<link rel="lazy-import" href="my-view404.html">
+<link rel="import" href="monopoly-dbopers.html">
+
+<dom-module id="my-app">
+  <template>
+    <style>
+      :host {
+        --app-primary-color: #4285f4;
+        --app-secondary-color: black;
+
+        display: block;
+      }
+
+      app-drawer-layout:not([narrow]) [drawer-toggle] {
+        display: none;
+      }
+
+      app-header {
+        color: #fff;
+        background-color: var(--app-primary-color);
+      }
+
+      app-header paper-icon-button {
+        --paper-icon-button-ink-color: white;
+      }
+
+      .drawer-list {
+        margin: 0 20px;
+      }
+
+      .drawer-list a {
+        display: block;
+        padding: 0 16px;
+        text-decoration: none;
+        color: var(--app-secondary-color);
+        line-height: 40px;
+      }
+
+      .drawer-list a.iron-selected {
+        color: black;
+        font-weight: bold;
+      }
+    </style>
+
+    <app-location
+        route="{{route}}"
+        url-space-regex="^[[rootPath]]">
+    </app-location>
+
+    <app-route
+        route="{{route}}"
+        pattern="[[rootPath]]:page"
+        data="{{routeData}}"
+        tail="{{subroute}}">
+    </app-route>
+
+    <app-drawer-layout fullbleed narrow="{{narrow}}">
+      <!-- Drawer content -->
+      <app-drawer id="drawer" slot="drawer" swipe-open="[[narrow]]">
+        <app-toolbar>Menu</app-toolbar>
+        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
+          <a name="view1" href="[[rootPath]]view1">View One</a>
+          <a name="view2" href="[[rootPath]]view2">View Two</a>
+          <a name="view3" href="[[rootPath]]view3">View Three</a>
+        </iron-selector>
+      </app-drawer>
+
+      <!-- Main content -->
+      <app-header-layout has-scrolling-region>
+
+        <app-header slot="header" condenses reveals effects="waterfall">
+          <app-toolbar>
+            <paper-icon-button icon="my-icons:menu" drawer-toggle></paper-icon-button>
+            <div main-title>My App</div>
+          </app-toolbar>
+        </app-header>
+
+        <iron-pages
+            selected="[[page]]"
+            attr-for-selected="name"
+            fallback-selection="view404"
+            role="main">
+          <my-view1 name="view1"></my-view1>
+
+          <!-- //[{"id":"LJ5cjAK8vRPIP2zCwHLo","name":"Israel","price":10000,"owner":"LJ5cjAK8vRPIP2zCwHLo"},{"id":"EeyWYPa6KAgc7cyLhn7Y","name":"Portugal","price":15000,"owner":"gzxdoKNTIxGFxASHA8Fo"},{"id":"XiFffSwBGTN3bZa0gGYO","name":"Argentina","price":12000,"owner":"gzxdoKNTIxGFxASHA8Fo"} ] -->
+          <!-- <monopoly-trans-country properties='{{propertieslist}}'
+             new-owner= '???????'
+             on-transfer-owner-happend="_eventRegisterTransaction">
+          </monopoly-trans-country> -->
+
+          <!-- //  EVENTO: transfer-owner-happend
+          //  REGRESA(*): { owner:"LJ5cjAK8vRPIP2zCwHLo",
+          //                  property:"EeyWYPa6KAgc7cyLhn7Y" } -->
+
+
+          <!-- <my-monopoly-dashboard players=[[playerslist]]
+               propertieslist=[[propertieslist]]>
+            <my-monopoly-dashboard>
+
+          <detail-table transactions=[[transactionslist]]>
+            <my-monopoly-dashboard> -->
+
+            <my-view2 name="view2"></my-view2>
+          <my-view3 name="view3"></my-view3>
+          <my-view404 name="view404"></my-view404>
+        </iron-pages>
+      </app-header-layout>
+    </app-drawer-layout>
+
+   <monopoly-dbopers id="mdb"></monopoly-dbopers>
+
+  </template>
+
+  <script>
+    // Gesture events like tap and track generated from touch will not be
+    // preventable, allowing for better scrolling performance.
+    Polymer.setPassiveTouchGestures(true);
+
+    class MyApp extends Polymer.Element {
+      constructor() {
+        super();
+      }
+      static get is() { return 'my-app'; }
+
+      static get properties() {
+        return {
+          page: {
+            type: String,
+            reflectToAttribute: true,
+            observer: '_pageChanged',
+          },
+          routeData: Object,
+          subroute: Object,
+          // This shouldn't be neccessary, but the Analyzer isn't picking up
+          // Polymer.Element#rootPath
+          rootPath: String,
+          playerslist : Array,
+          propertieslist : Array,
+          transactionslist : Array,
+          gamestatus : { type : String, value : 'NotStarted'},
+          currentplayer : String,
+        };
+      }
+
+      connectedCallback() {
+          super.connectedCallback();
+          //Inicializa consultas de properties, players, properties
+          this.set('propertieslist', this.$.mdb.queryProperties());
+          this.set('playerslist', this.$.mdb.queryPlayers());
+          this.set('transactionslist', this.$.mdb.queryTransactions());
+          this.set('gamestatus', 'NotStarted');
+          
+          console.log("properties: " + JSON.stringify("Props: " + this.propertieslist));
+          console.log("transactions: " + JSON.stringify("Trans:" + this.transactionslist));
+          console.log("players: " + JSON.stringify("Players:" + this.playerslist));
+      }
+
+      // _eventLoginPlayer(event) {
+      //   //TODO
+      //   //recupera el player del evento
+      //   let alias = event.detail.playerAlias;
+      //
+      //   //Cambia estatus a ‘playing’ devuelve el objeto player
+      // }
+      //
+      // //Cambia estatus a ‘ready’ devuelve el objeto player
+      // _eventReadyPlayer(event) {
+      //   //TODO
+      //   //recupera el player del evento
+      //   let alias = event.detail.playerAlias;
+      //   //actualiza su estatus a 'ready'
+      //   //guarda el player con nuevo estatus
+      //   //recupera la lista actualizada de players
+      //   this.playerslist = this.$.mdb.queryPlayers();
+      // }
+      //
+      // _eventRegisterPlayer(event) {
+      //   //TODO
+      //   //recupera el player del evento
+      //   let alias = event.detail.playerAlias;
+      //   //crear un player con monto inicial, estatus 'new'
+      //   //guarda el player con nuevo estatus
+      //   //recupera la lista actualizada de players
+      //   this.playerslist = this.$.mdb.queryPlayers();
+      // }
+      //
+      // _eventLostPlayer(event) {
+      //   //TODO
+      //   //recupera el player del evento
+      //   let alias = event.detail.playerAlias;
+      //
+      //   //actualiza su estatus del player a 'lost'
+      //   //guarda el player con nuevo estatus
+      //   //recupera la lista actualizada de players
+      //
+      //   //Cambia el estatus en el arreglo local y en la BD
+      //   this.playerslist = this.$.mdb.queryPlayers();
+      // }
+      //
+      // _eventResetGame(event) {
+      //   //Reinicia los valores al estado inicial
+      //
+      //   //Cambia el estatus del juego
+      //   this.gamestatus = 'NotStarted';
+      // }
+      //
+      //  _eventStartGame(event) {
+      //    //Valida que haya al menos 1 player registrado y que todos esten en estatus ‘ready’
+      //    //El banco llena las propiedades desde el archivo config-game.json
+      //    //El banco toma una cantidad inicial desde el archivo config-game.json
+      //    //Cambia estatus del juego a 'Started'
+      //    this.gamestatus = 'NotStarted';
+      //  }
+      //
+      // _eventRegisterTransaction(event) {
+      //   //TODO
+      //     // Internamente esta función detectará si es de cambio de propiedad o de dinero
+      //     // Si es una compra transferirá la propiedad de un player a otro
+      //     // Se valida que el playerFrom esté en status ‘playing’
+      //     let p = event.detail.property;
+      //     let player = event.detail.owner;
+      //
+      //     // Actualiza la cantidad de dinero de un player a otro
+      //     //moveProperty(Property, playerFrom, playerTo)
+      //
+      //     //Actualiza la cantidad de dinero de un player a otro
+      //     updatePlayerAmount(incrementAmout, playerFrom, playerTo)
+      //     this.transactionslist = mdb.queryTransactions();
+      // }
+      //
+      // //Retorna un objeto player con alias especificado con todos sus datos incluyendo sus propiedades
+      // _eventQueryPlayer(event) {
+      //   //TODO
+      //   let alias = event.detail.playerAlias;
+      //   this.playerslist = this.$.mdb.queryPlayers(alias);
+      // }
+      //
+      // //Devuelve un arreglo de todos los players ordenada por id sin importar el estatus
+      // _eventQueryAllPlayers(event) {
+      //   this.playerslist = this.$.mdb.queryPlayers();
+      // }
+      // //Devuelve un arreglo de todas las transacciones del juego ordenadas por id
+      // _eventQueryAllTransactions(event) {
+      //   this.transactionslist = this.$.mdb.queryTransactions();
+      // }
+      //
+      // //Devuelve un arreglo de transacciones del alias especificado ordenadas por id
+      // _eventQueryTransactions(event) {
+      //   // TODO
+      //   let alias = event.detail.playerAlias;
+      //
+      //   this.transactionslist = mdb.queryTransactions(alias);
+      // }
+
+
+
+       // ----------------------------------------------------------
+      static get observers() {
+        return [
+          '_routePageChanged(routeData.page)',
+        ];
+      }
+
+      _routePageChanged(page) {
+        // If no page was found in the route data, page will be an empty string.
+        // Default to 'view1' in that case.
+        this.page = page || 'view1';
+
+        // Close a non-persistent drawer when the page & route are changed.
+        if (!this.$.drawer.persistent) {
+          this.$.drawer.close();
+        }
+      }
+
+      _pageChanged(page) {
+        // Load page import on demand. Show 404 page if fails
+        const resolvedPageUrl = this.resolveUrl('my-' + page + '.html');
+        Polymer.importHref(
+            resolvedPageUrl,
+            null,
+            this._showPage404.bind(this),
+            true);
+      }
+
+      _showPage404() {
+        this.page = 'view404';
+        //console.log(this.$.mdb.queryPlayers());
+      }
+    }
+
+    window.customElements.define(MyApp.is, MyApp);
+  </script>
+</dom-module>
