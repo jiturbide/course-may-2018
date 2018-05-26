@@ -47,7 +47,7 @@
         return properties;
       }
 
-      queryPlayers() {
+      queryPlayersDummy() {
         //Devuelve un arreglo de todos los players ordenada por id sin importar el estatus
         let players = [
            { id : 'PABCDEF002', alias : 'margarito', amount : 10000, status : 'playing' },
@@ -57,21 +57,25 @@
           ]
         return players;
       }
+      queryPlayers() {
+        //Devuelve un arreglo de todos los players ordenada por id sin importar el estatus
+        let players = [];
+        return players;
+      }
 
-      queryTransactions() {
+      queryTransactionsDummy() {
         //Devuelve un arreglo de todas las transacciones del juego ordenadas por id
         let transactions = [
           { id : 'TXABCDEF00999', from : 'banco', to : 'cslim', amount : 75000000, date : '18-05-10_12:20', property : 'mexico' },
           { id : 'TXABCDEF001000', from : 'cslim', to : 'margarito', amount : 0, date : '18-05-21_12:20', property : 'etiopia' },
-          { id : "1001", from : 'margarito', to : 'cslim', amount : 200, date : '18-05-21_12:30', property : null },
-            { "id": "TXABCDEF00999", "from" : "banco", "to" : "cslim", "amount" : 75000000, "date" : "18-05-10_12:20", "property" : "mexico" },
-            { "id": "TXABCDEF001000", "from" : "cslim", "to" : "margarito", "amount" : 0, "date" : "18-05-21_12:20", "property" : "etiopia" },
-            { "id": "1001", "from" : "margarito", "to" : "cslim", "amount" : 200.12, "date" : "18-05-21_12:30", "property" : "" },
-            { "id": "1231231231231231", "from" : "Equipo2", "to" : "rey", "amount" : 'sdasd', "date" : "20-06-12_12:20", "property" : "georgia" },
-            { "id": "adfdfsdfsdfsdfsfsdf", "from" : "banco", "to" : "cslim", "amount" : 75000000, "date" : "18-05-10_12:20", "property" : "canada" },
-            { "id": "e2323wer2rwer23rrer", "from" : "cslim", "to" : "margarito", "amount" : 0.2, "date" : "18-05-21_12:20", "property" : "uk" },
-            { "id": "1001", "from" : "margarito", "to" : "cslim", "amount" : 1, "date" : "18-05-21_12:35", "property" : "" },
-            { "id": "TXABCDEF00189282", "from" : "tres", "to" : "javier", "amount" : 'sdasd', "date" : "20-06-12_12:43", "property" : "ujkbenis" }];
+          { id : "1001", from : 'margarito', to : 'cslim', amount : 200, date : '18-05-21_12:30', property : null }
+        ]
+        return transactions;
+      }
+
+      queryTransactions() {
+        //Devuelve un arreglo de todas las transacciones del juego ordenadas por id
+        let transactions = [];
         return transactions;
       }
     }

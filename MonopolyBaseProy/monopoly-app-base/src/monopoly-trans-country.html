@@ -1,0 +1,136 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
+
+<dom-module id="monopoly-trans-country">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+
+    .rate-header { @apply --paper-font-headline; }
+    .rate-name { color: var(--paper-grey-600); margin: 10px 0; }
+
+    .new_owner {
+      color: #111;
+    }
+
+     paper-button.green {
+         background-color: #4CBB17;
+         color: white;
+        margin-top: 25px;
+        padding:10px 20px;
+      }
+
+      paper-button.green[disabled]{
+        background-color: rgb(165, 177, 165);
+        color: rgb(226, 222, 222);
+      }
+
+    h2#hint{
+      visibility : hidden;
+      display: inline;
+      text-align: center;
+      padding-left: 35%;
+    }
+
+    </style>
+    <h2>Detalles de la transferencia</h2>
+
+
+       <!--  <div class="container-selects"> -->
+            <paper-dropdown-menu noink no-animations Label="Elige un país:">
+                <paper-listbox id="listbox"
+                        slot="dropdown-content"
+                        attr-for-selected="selected-item"
+                        selected="{{propertySelected}}">
+                     <template is="dom-repeat" items="[[properties]]" as="property">
+                        <paper-item selected-item="[[property.id]]">[[property.name]]</paper-item>
+                    </template>
+                  </paper-listbox>
+            </paper-dropdown-menu>
+        <!-- </div> -->
+        <div class="rate-name">
+          A jugador <span class="new_owner">[[ownerAlias]]</span>
+        </div>
+
+        <div class="button_accept">
+            <paper-button toggles raised id="transferButton" class="green" on-click="transferOwnership" disabled>Transferir</paper-button>
+        </div>
+
+    <h2 id="hint" class"sucess">Éxito</h2>
+  </template>
+
+  <script>
+    /**
+     * `monopoly-trans-country`
+     * element to tranfer the ownership of a country
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class MonopolyTransCountry extends Polymer.Element {
+      static get is() { return 'monopoly-trans-country'; }
+      static get properties() {
+        return {
+          properties: {
+            type: Object,
+            value: {}
+          },
+          propertySelected:{
+            type: String,
+            value:'',
+            observer: "propertyChange"
+          },
+          newOwner: {
+            type: Object,
+            value:{},
+            reflectToAttribute: true,
+          },
+          ownerAlias: {
+            type: Object,
+            value:{}
+          },
+          transaction: {
+            type: Object,
+            value: {}
+          }
+        };
+      }
+
+      connectedCallback(){
+        super.connectedCallback();
+        this.set('ownerAlias',this.newOwner.alias);
+      }
+
+      transferOwnership(){
+        const details = { owner:this.newOwner.id, property:this.propertySelected };
+        this.set('transaction',details);
+        this.dispatchEvent(new CustomEvent('transfer-owner-happend', {
+                              bubbles:  true,
+                              composed: true,
+                              detail: details
+          }));
+        this.set('propertySelected','');
+        this.$.hint.style.visibility = 'visible';
+        console.log(JSON.stringify(details));
+      }
+
+      propertyChange(){
+        if(this.propertySelected !== '') {
+          this.$.transferButton.removeAttribute('disabled');
+          this.$.hint.style.visibility = 'hidden';
+        }
+        else {
+          this.$.transferButton.setAttribute('disabled',true);
+        }
+      }
+    } // class
+
+    window.customElements.define(MonopolyTransCountry.is, MonopolyTransCountry);
+  </script>
+</dom-module>

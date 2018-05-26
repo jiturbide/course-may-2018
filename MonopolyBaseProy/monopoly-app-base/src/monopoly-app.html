@@ -11,10 +11,12 @@
 <link rel="import" href="/bower_components/paper-button/paper-button.html">
 <link rel="import" href="/bower_components/paper-input/paper-input.html">
 <link rel="import" href="/bower_components/iron-icon/iron-icon.html">
-<link rel="import" href="/bower_components/my-monopoly-dashboard/src/my-monopoly-dashboard.html">
+<!-- <link rel="import" href="/bower_components/my-monopoly-dashboard/src/my-monopoly-dashboard.html"> -->
+<link rel="import" href="my-monopoly-dashboard.html">
 <link rel="import" href="detail-table.html">
 <link rel="import" href="monopoly-dbopers.html">
 <link rel="import" href="monopoly-trans-cash.html">
+<link rel="import" href="monopoly-trans-country.html">
 
 <dom-module id="monopoly-app">
   <template>
@@ -67,12 +69,10 @@
         </app-header>
         <!-- <contact-panel active-contact="[[activeContact]]" on-info-updated="_updateContact"></contact-panel> -->
         <h4>Lista de jugadores</h4>
-        <my-monopoly-dashboard players={{playerslist}}></my-monopoly-dashboard>
+        <my-monopoly-dashboard players={{playerslist}} properties={{propertieslist}}></my-monopoly-dashboard>
 
         <h4>Lista de Transacciones</h4>
-        <detail-table transactions=[[transactionlist]]></detail-table>
-
-        <!-- '[{  "id": "1001","from" : "margarito","to" : "cslim","amount" : 1,"date" : "18-05-21_12:35","property" : ""}]' -->
+        <detail-table transactions={{transactionslist}}></detail-table>
 
       </app-header-layout>
 
@@ -89,10 +89,10 @@
 
     <paper-dialog id="dialogPlayer" with-backdrop>
       <h2>Registrar jugador</h2>
-      <paper-input id="playername" label="Nombre">
+      <paper-input id="inputplayername" label="Nombre">
         <iron-icon icon="social:mood" slot="prefix"></iron-icon>
       </paper-input>
-      <paper-button raised on-click="_registerPlayer">Guardar</paper-button>
+      <paper-button raised on-click="_eventRegisterPlayer">Guardar</paper-button>
     </paper-dialog>
 
     <paper-dialog id="dialogSelectPlayer" with-backdrop>
@@ -116,29 +116,16 @@
 
     <paper-dialog id="dialogProperty" with-backdrop>
       <h2>Transaccion Propiedad</h2>
-      <paper-input id="name" label="Nombre">
-        <iron-icon icon="social:mood" slot="prefix"></iron-icon>
-      </paper-input>
-      <paper-input id="phone" label="Telefono">
-        <iron-icon icon="hardware:phone-android" slot="prefix"></iron-icon>
-      </paper-input>
-      <paper-button raised on-click="_createTranProperty">Guardar</paper-button>
+      <monopoly-trans-country
+      properties='{{propertieslist}}'
+      new-owner= '[[currentplayer]]'
+      on-transfer-owner-happend="_eventRegisterTranProperty"></monopoly-trans-country>
     </paper-dialog>
 
     <paper-dialog id="dialogResetGame" with-backdrop>
       <h2>Reiniciar Juego</h2>
       <paper-button raised on-click="_resetGame">Reiniciar</paper-button>
     </paper-dialog>
-
-    <!-- //[{"id":"LJ5cjAK8vRPIP2zCwHLo","name":"Israel","price":10000,"owner":"LJ5cjAK8vRPIP2zCwHLo"},{"id":"EeyWYPa6KAgc7cyLhn7Y","name":"Portugal","price":15000,"owner":"gzxdoKNTIxGFxASHA8Fo"},{"id":"XiFffSwBGTN3bZa0gGYO","name":"Argentina","price":12000,"owner":"gzxdoKNTIxGFxASHA8Fo"} ] -->
-    <!-- <monopoly-trans-country properties='{{propertieslist}}'
-       new-owner= '???????'
-       on-transfer-owner-happend="_eventRegisterTransaction">
-    </monopoly-trans-country> -->
-
-    <!-- //  EVENTO: transfer-owner-happend
-    //  REGRESA(*): { owner:"LJ5cjAK8vRPIP2zCwHLo",
-    //                  property:"EeyWYPa6KAgc7cyLhn7Y" } -->
 
    <monopoly-dbopers id="mdb"></monopoly-dbopers>
 
@@ -158,8 +145,13 @@
             propertieslist : Array,
             transactionslist : Array,
             gamestarted : { type : Boolean, value : false, reflectToAttribute : true},
-            currentplayer : Object,
-            newtran : Object,
+            currentplayer : {type : Object,
+                        value: {id: 'Player000', alias: 'Bank', amount: 10000, status: 'playing'} },
+            newtran : { type : Object,
+                        value: { id : '', from : '', to : '', amount : 0, date : '', property : '' } },
+            newplayer : {type : Object,
+                        value: {id: 'Player', alias: '', amount: 5000, status: 'playing'} },
+            playercount : {type : Number, value : 0}
           };
         }
 
@@ -169,8 +161,8 @@
             this.set('propertieslist', this.$.mdb.queryProperties());
             this.set('playerslist', this.$.mdb.queryPlayers());
             this.set('transactionslist', this.$.mdb.queryTransactions());
-            this.set('gamestatus', 'NotStarted');
-            this.set('currentplayer', { id : 'PABCDEF002', alias : 'margarito', amount : 10000, status : 'playing' } );
+            this.set('gamestarted', false);
+            //this.set('currentplayer', null );
             console.log("properties: " + JSON.stringify("Props: " + this.propertieslist));
             console.log("transactions: " + JSON.stringify("Trans:" + this.transactionslist));
             console.log("players: " + JSON.stringify("Players:" + this.playerslist));
@@ -181,21 +173,6 @@
         //   //recupera el player del evento
         //   let alias = event.detail.playerAlias;
         //
-        //   //Cambia estatus a ‘playing’ devuelve el objeto player
-        // }
-        //
-        // //Cambia estatus a ‘ready’ devuelve el objeto player
-        // _eventReadyPlayer(event) {
-        //   //TODO
-        //   //recupera el player del evento
-        //   let alias = event.detail.playerAlias;
-        //   //actualiza su estatus a 'ready'
-        //   //guarda el player con nuevo estatus
-        //   //recupera la lista actualizada de players
-        //   this.playerslist = this.$.mdb.queryPlayers();
-        // }
-        //
-
         //
         // _eventLostPlayer(event) {
         //   //TODO
@@ -209,13 +186,7 @@
         //   //Cambia el estatus en el arreglo local y en la BD
         //   this.playerslist = this.$.mdb.queryPlayers();
         // }
-        //
-        // _eventResetGame(event) {
-        //   //Reinicia los valores al estado inicial
-        //
-        //   //Cambia el estatus del juego
-        //   this.gamestatus = 'NotStarted';
-        // }
+
         //
         //  _eventStartGame(event) {
         //    //Valida que haya al menos 1 player registrado y que todos esten en estatus ‘ready’
@@ -233,15 +204,13 @@
             //let p = event.detail.property;
             //let player = event.detail.owner;
 
-            newtran.id = 'TNewTran' + Math.floor((Math.random() * 1000000) + 1);
-            newtran.from = event.detail.from;
-            newtran.to = event.detail.to;
-            newtran.amount = event.detail.amount;
-            newtran.date = '18-05-10_12:20'
-            newtran.property = '';
-            console.log("newtran: " + newtran);
-            this.transactionslist = [newtran];
-//this.contactList[this.contactList.length - 1]
+            this.newtran.id = 'TNewTran' + Math.floor((Math.random() * 1000000) + 1);
+            this.newtran.from = event.detail.from;
+            this.newtran.to = event.detail.to;
+            this.newtran.amount = event.detail.amount;
+            this.newtran.date = '2018-05-25'
+            this.newtran.property = '';
+            this.push('transactionslist', this.newtran);
 
             // Actualiza la cantidad de dinero de un player a otro
             //moveProperty(Property, playerFrom, playerTo)
@@ -251,31 +220,6 @@
             //this.transactionslist = mdb.queryTransactions();
             this.$.dialogMoney.close();
         }
-        //
-        // //Retorna un objeto player con alias especificado con todos sus datos incluyendo sus propiedades
-        // _eventQueryPlayer(event) {
-        //   //TODO
-        //   let alias = event.detail.playerAlias;
-        //   this.playerslist = this.$.mdb.queryPlayers(alias);
-        // }
-        //
-        // //Devuelve un arreglo de todos los players ordenada por id sin importar el estatus
-        // _eventQueryAllPlayers(event) {
-        //   this.playerslist = this.$.mdb.queryPlayers();
-        // }
-        // //Devuelve un arreglo de todas las transacciones del juego ordenadas por id
-        // _eventQueryAllTransactions(event) {
-        //   this.transactionslist = this.$.mdb.queryTransactions();
-        // }
-        //
-        // //Devuelve un arreglo de transacciones del alias especificado ordenadas por id
-        // _eventQueryTransactions(event) {
-        //   // TODO
-        //   let alias = event.detail.playerAlias;
-        //
-        //   this.transactionslist = mdb.queryTransactions(alias);
-
-
 
         _openDialogPlayer() {
           this.$.dialogPlayer.open();
@@ -293,25 +237,40 @@
           this.$.dialogResetGame.open();
         }
 
-        _createTranProperty() {
-          console.log("_createTranProperty()");
+        _createTranProperty(event) {
+          //const details = { owner:this.newOwner[0].id, property:this.propertySelected };
+          console.log("_createTranProperty() " + event.detail.id + ", " + event.detail.propertySelected);
           this.$.dialogProperty.close();
         }
-        _createTranMoney() {
-          console.log("_createTranMoney()");
-          this.$.dialogMoney.close();
+        _eventRegisterTranProperty(event) {
+          console.log("_createTranProperty() " + event.detail.owner + ", " + event.detail.property);
+
+          this.newtran.id = 'TNewTran' + Math.floor((Math.random() * 1000000) + 1);
+          this.newtran.from = this.currentplayer.alias;
+          this.newtran.to = event.detail.owner;
+          this.newtran.amount = 0;
+          this.newtran.date = '2018-05-25'
+          this.newtran.property = event.detail.property;
+          this.push('transactionslist', this.newtran);
+
+          this.$.dialogProperty.close();
         }
 
         _eventRegisterPlayer(event) {
           console.log("_eventRegisterPlayer()");
-          //TODO
+
           //recupera el player del evento
-          //let alias = event.detail.playerAlias;
           //crear un player con monto inicial, estatus 'new'
           //guarda el player con nuevo estatus
-          //recupera la lista actualizada de players
-          //this.playerslist = this.$.mdb.queryPlayers();
+          this.playercount = this.playercount + 1;
+          this.newplayer.id =  this.$.inputplayername.value;
+          this.newplayer.alias = this.newplayer.id;
+          this.newplayer.amount = 5000;
+          this.newplayer.status = 'playing';
+          this.push('playerslist', this.newplayer);
 
+          //this.playerslist = this.$.mdb.queryPlayers();
+          this.$.inputplayername.value = '';
           this.$.dialogPlayer.close();
         }
 
@@ -320,7 +279,11 @@
         }
 
         _resetGame() {
-            this.$.dialogResetGame.close();
+          this.set('playerslist', this.$.mdb.queryPlayers());
+          this.set('transactionslist', this.$.mdb.queryTransactions());
+          this.set('gamestarted', false);
+          this.set('playercount', 0);
+          this.$.dialogResetGame.close();
         }
 
 
